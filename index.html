@@ -21,15 +21,7 @@
 
 async function init() {
  const data = await d3.csv('https://rjenya.github.io/nasa.csv');
- var lineFunction = d3.svg.line()
-  .x(function(d) { return d.Year; })
-  .y(function(d) { return d.Glob; })
-  .interpolate("linear");
- var lineGraph = svg.append("path")
- .attr("d", lineFunction(data))
- .attr("stroke", "blue")
- .attr("stroke-width", 2)
- .attr("fill", "none");
+ 
 </script>
 </body>
 </html>

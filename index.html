@@ -6,19 +6,6 @@
 <script src='https://d3js.org/d3.v5.min.js'></script>
 <body onload='init()'>
 <script>
-     var w = 900,
-        h = 400,
-        padding = {
-            top: 30, 
-            right: 50, 
-            bottom: 50, 
-            left: 100
-        };
- // Create SVG element
-    var svg = d3.select("body")
-        .append("svg")
-        .attr({ width: w, height: h });
-
 async function init() {
  const data = await d3.csv('https://rjenya.github.io/nasa.csv');
  d3.select('body').selectAll('p').data(data)

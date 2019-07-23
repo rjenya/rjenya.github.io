@@ -1,7 +1,9 @@
-<html>
+d3.select('body').selectAll('p').data(data)
+ .enter().append('p')
+ .html(function(d,i) {return 'item ' + d.Year+ ' is ' + d.Glob+ '.';}  );<html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Insert title here</title>
+<title>Global and Hemispheric Means</title>
 </head>
 <script src='https://d3js.org/d3.v5.min.js'></script>
 <body onload='init()'>
@@ -21,7 +23,9 @@
 
 async function init() {
  const data = await d3.csv('https://rjenya.github.io/nasa.csv');
- 
+ d3.select('body').selectAll('p').data(data)
+ .enter().append('p')
+ .html(function(d,i) {return 'Year ' + d.Year+ ' is ' + d.Glob+ '.';}  );
 </script>
 </body>
 </html>

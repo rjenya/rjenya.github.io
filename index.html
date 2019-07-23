@@ -11,6 +11,7 @@ async function init() {
  d3.select('body').selectAll('p').data(data)
  .enter().append('p')
  .html(function(d,i) {return 'Year ' + d.Year+ ' is ' + d.Glob+ '.';}  );
+}
 </script>
 </body>
 </html>

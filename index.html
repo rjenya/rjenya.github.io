@@ -1,17 +1,355 @@
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Insert title here</title>
-</head>
-<script src='https://d3js.org/d3.v5.min.js'></script>
-<body onload='init()'>
-<script>
-async function init() {
- const data = await d3.csv('https://rjenya.github.io/nasa.csv');
- d3.select('body').selectAll('p').data(data)
- .enter().append('p')
- .html(function(d,i) {return 'Year ' + d.Year+ ' is ' + d.Glob+ '.';}  );
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:400,100,300,500">
+<style>
+    body {
+        font-family: 'Roboto', sans-serif; 
+        padding: 50px 0 75px 50px;
+    }
+h1 {
+  font-family: sans-serif;
+  text-align: center;
 }
-</script>
-</body>
-</html>
+    .axis path, .axis line {
+        fill: none;
+        stroke: rgb(200, 200, 200);
+        stroke-width: 1;
+        shape-rendering: crispEdges;
+    }
+    .y g:first-child line {stroke: rgb(200, 200, 200);}
+    .axis text {
+        font-family: 'Roboto';
+        font-size: 14px;
+    }
+    
+    path {
+        fill: none;
+        stroke: rgb(0, 0, 0);
+        stroke-width: 2;
+        shape-rendering: geometricPrecision;
+        opacity: 0.5;
+    }
+    g path:hover {stroke-width: 2.5; opacity: 1;}
+    
+    g.highlight path {stroke-width: 2; opacity: 0.25;}
+    g.red path {stroke: red;}
+    g.steelblue path {stroke: steelblue;}
+    g.highlight path:hover {stroke-width: 2.5; opacity: 1;}
+    
+    .legend rect {fill: white; stroke: black; opacity: 0.8;}    
+    .tick text {font-size: 11px;}
+    
+</style>
+<body>
+<h1>Global and Hemispheric Zonal Annual Means</h1>
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<!--<script src="d3.legend.js"></script>-->
+<script> 
+
+    var w = 900,
+        h = 400,
+        padding = {
+            top: 30, 
+            right: 50, 
+            bottom: 50, 
+            left: 100
+        };
+
+    var dateFormat = d3.time.format("%Y");
+    
+    // Define axis ranges & scales 
+    var xScale = d3.time.scale()
+                        .range([padding.left, w - padding.right]),
+        yScale = d3.scale.linear()
+                        .range([padding.top, h - padding.bottom]);
+
+    var xAxis = d3.svg.axis()
+            .scale(xScale)
+            .orient("bottom")
+            .tickSize(0)
+            .tickPadding(10)
+            .tickFormat(function(d) {
+                return dateFormat(d);
+            }),
+        yAxis = d3.svg.axis()
+            .scale(yScale)
+            .orient("left")
+            .tickSize(5)
+            .tickPadding(10);
+
+
+    // Define lines
+    var categories = [ "Glob", "NHem", "SHem" ];
+    var line = d3.svg.line()
+            .x(function(d) { return xScale(dateFormat.parse(d.year)); })
+            .y(h-padding.bottom)
+            .interpolate("monotone"),
+        line2 = d3.svg.line()
+            .x(function(d) { return xScale(dateFormat.parse(d.year)); })
+            .y(function(d) { return yScale(+d.amount);    })
+            .interpolate("monotone");
+    
+    // Create SVG element
+
+   //d3.select("body").append("h1").text("Global and Hemispheric Zonal Annual Means");
+       //  .attr("transform", "translate(" + (padding.left) + ", 0)");
+     var svg = d3.select("body")
+        .append("svg")
+        .attr({ width: w, height: h });
+
+   
+
+     var monthly = d3.select("body").append("g")
+	.attr("transform", "translate(0,"+(h)+")");
+
+    // Load data from CSV file
+    d3.csv('https://rjenya.github.io/nasa.csv', function(data) {
+
+        dataset = []
+        
+        for (i = 0; i < categories.length; i++) {
+            dataset[i] = {
+                catName: categories[i],
+                value: []
+            };
+            
+            for (var j = 0; j < data.length; j++) {
+                    dataset[i].value.push({
+                        year: data[j].Year,
+                        amount: data[j][categories[i]]
+                    });
+            }
+            
+        }
+        
+        xScale.domain([
+            d3.min(data, function(d) {
+                return dateFormat.parse(d.Year);
+            }),
+            d3.max(data, function(d) {
+                return dateFormat.parse(d.Year);
+            })
+        ]);
+    
+        yScale.domain([1.00, -0.60]);
+        
+const annotations = [{
+  note: { label: "Hi"},
+  x: 100, y: 100,
+  dy: 137, dx: 162,
+  subject: { radius: 50, radiusPadding: 10 }
+}]
+
+//d3.annotation().annotations(annotations);
+
+
+            
+        d3.select("svg").append("rect")
+            .attr("class", "base-period")
+            .attr({
+                x: xScale(dateFormat.parse("1951")),
+                y: padding.top,
+                width: xScale(dateFormat.parse("1980")) - xScale(dateFormat.parse("1951")),
+                height: h - padding.top - padding.bottom,
+                fill: "WhiteSmoke ",
+            });
+            
+        d3.select("svg").append("text")
+            .attr("text-anchor", "middle")
+            .attr({
+                class: "base-period-label",
+                y: 60,
+                x: xScale(dateFormat.parse("1951")) + (xScale(dateFormat.parse("1980")) - xScale(dateFormat.parse("1951"))) / 2,
+            })
+            .text("The base period")
+            .style({
+                "font-size": 12,
+                "font-style": "italic",
+                "fill": "#999"
+            });
+        
+        d3.select("text.base-period-label")
+            .append("tspan")
+            .attr({
+                y: 80,
+                x: xScale(dateFormat.parse("1951")) + (xScale(dateFormat.parse("1980")) - xScale(dateFormat.parse("1951"))) / 2,
+            })
+            .text("1951-1980");
+            
+        d3.select("svg").append("line")
+            .attr("class", "zero")
+            .attr({
+                x1: padding.left,
+                y1: yScale(0),
+                x2: w - padding.right,
+                y2: yScale(0),
+            })
+            .style("stroke", "rgb(230, 230, 230)")
+            .style("shape-rendering", "crispEdges")
+            .style("stroke-width", 1);      
+        
+        svg.append("g")
+            .attr("class", "axis x")
+            .attr("transform", "translate(0 ," + (h - padding.bottom) + ")")
+            .call(xAxis)
+            .append("text")
+            .attr("text-anchor", "middle")
+            .attr({
+                class: "xlabel",
+                y: 45,
+                x: padding.left + (w - padding.left - padding.right) / 2,
+            })
+            .text("Year")
+            .style({
+                "font-size": 12,
+                "font-style": "bold"
+            });
+        
+        svg.append("g")
+            .attr("class", "axis y")
+            .attr("transform", "translate(" + (padding.left) + ", 0)")
+            .call(yAxis)
+            .append("text")
+            .attr("text-anchor", "start")
+            .attr({
+                class: "ylabel",
+                y: 10,
+                x: -32,
+            })
+            .text("Temperature Anomaly (\xB0 C)")
+            .style({
+                "font-size": 12,
+                "font-style": "bold"
+            }); 
+
+
+        var groups = svg.selectAll(".line")
+            .data(dataset)
+            .enter()
+            .append("g")
+            .attr("class", function(d) {
+                if (d.catName == "NHem") {
+                    return "highlight steelblue";
+                } else if (d.catName == "SHem") {
+                    return "highlight red";
+                } else {
+                    return "";
+                }
+            });
+
+        groups.append("title")
+            .text(function(d) {
+                return d.catName;
+            });
+
+        var catLine = groups
+		//.selectAll("path")
+            //.data(function(d) {
+            //    return [ d.value ];
+            //})
+            //.enter()
+            .append("path")
+            .attr("class", "line")
+            .attr("d", function(d) {
+                return line2(d.value);
+            })
+	.on("click", click);
+        
+        //catLine.transition()
+        //    .delay(500)
+        //    .duration(2000)
+         //   .attr("d", line2);        
+        
+        var lineLabels = svg.selectAll(".line-label")
+            .data(dataset)
+            .enter()
+            .append("text")
+            .attr("x", w - 45)
+            .attr("y", h - padding.bottom)
+            .text(function(d) {
+                if (d.catName == "NHem") {
+                    return "North";
+                } else if (d.catName == "SHem") {
+                    return "South";
+                } else {
+                    return "Global";
+                }                
+            })
+            .style({
+                "font-size": 12,
+                "font-style": "bold",
+                "opacity": 0
+            });
+            
+            lineLabels
+                .attr("y", function(d) {
+
+                if (d.catName == "NHem") {
+                    return yScale(0.91) + 5;
+                } else if (d.catName == "SHem") {
+                    return yScale(0.58) + 5;
+                } else {
+                    return yScale(0.75) + 5;
+                }
+                
+                })
+                .style("opacity", 1); 
+
+	function click(element){ 
+    		console.log(element.catName);
+		monthly.selectAll("*").remove();
+	monthly.append("h1").text(function(d) {
+                if (element.catName == "NHem") {
+                    return "North Monthly Means";
+                } else if (element.catName == "SHem") {
+                    return "South Monthly Means";
+                } else {
+                    return "Global Monthly Means";
+                }                
+            });
+		
+     	var svg2 = monthly
+        .append("svg")
+	.attr("id","monthly")
+        .attr({ width: w, height: h });
+
+        svg2.append("g")
+            .attr("class", "axis x")
+            .attr("transform", "translate(0 ," + (h - padding.bottom) + ")")
+            .call(xAxis)
+            .append("text")
+            .attr("text-anchor", "middle")
+            .attr({
+                class: "xlabel",
+                y: 45,
+                x: padding.left + (w - padding.left - padding.right) / 2,
+            })
+            .text("Year")
+            .style({
+                "font-size": 12,
+                "font-style": "bold"
+            });
+        
+        svg2.append("g")
+            .attr("class", "axis y")
+            .attr("transform", "translate(" + (padding.left) + ", 0)")
+            .call(yAxis)
+            .append("text")
+            .attr("text-anchor", "start")
+            .attr({
+                class: "ylabel",
+                y: 10,
+                x: -32,
+            })
+            .text(element.catName + "Temperature Anomaly (\xB0 C)")
+            .style({
+                "font-size": 12,
+                "font-style": "bold"
+            }); 
+
+
+	}
+   
+
+    });
+</script>  

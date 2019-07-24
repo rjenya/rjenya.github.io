@@ -103,7 +103,7 @@ h1 {
 	.attr("transform", "translate(0,"+(h)+")");
 
     // Load data from CSV file
-    d3.csv('https://rjenya.github.io/nasa.csv', function(data) {
+    d3.csv('https://rjenya.github.io/ZonAnn.Ts+dSST.csv', function(data) {
 
         dataset = []
         
@@ -133,15 +133,6 @@ h1 {
     
         yScale.domain([1.00, -0.60]);
         
-const annotations = [{
-  note: { label: "Hi"},
-  x: 100, y: 100,
-  dy: 137, dx: 162,
-  subject: { radius: 50, radiusPadding: 10 }
-}]
-
-//d3.annotation().annotations(annotations);
-
 
             
         d3.select("svg").append("rect")
@@ -295,7 +286,11 @@ const annotations = [{
                 })
                 .style("opacity", 1); 
 
-	function click(element){ 
+
+
+
+
+function click(element){ 
     		console.log(element.catName);
 		monthly.selectAll("*").remove();
 	monthly.append("h1").text(function(d) {
@@ -308,10 +303,55 @@ const annotations = [{
                 }                
             });
 		
+var monthlycat = [ "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
      	var svg2 = monthly
         .append("svg")
 	.attr("id","monthly")
         .attr({ width: w, height: h });
+
+        svg2.append("rect")
+            .attr("class", "base-period")
+            .attr({
+                x: xScale(dateFormat.parse("1951")),
+                y: padding.top,
+                width: xScale(dateFormat.parse("1980")) - xScale(dateFormat.parse("1951")),
+                height: h - padding.top - padding.bottom,
+                fill: "WhiteSmoke ",
+            });
+            
+        var bpl = svg2.append("text")
+            .attr("text-anchor", "middle")
+            .attr({
+                class: "base-period-label",
+                y: 60,
+                x: xScale(dateFormat.parse("1951")) + (xScale(dateFormat.parse("1980")) - xScale(dateFormat.parse("1951"))) / 2,
+            })
+            .text("The base period")
+            .style({
+                "font-size": 12,
+                "font-style": "italic",
+                "fill": "#999"
+            });
+        
+        bpl
+            .append("tspan")
+            .attr({
+                y: 80,
+                x: xScale(dateFormat.parse("1951")) + (xScale(dateFormat.parse("1980")) - xScale(dateFormat.parse("1951"))) / 2,
+            })
+            .text("1951-1980");
+            
+        svg2.append("line")
+            .attr("class", "zero")
+            .attr({
+                x1: padding.left,
+                y1: yScale(0),
+                x2: w - padding.right,
+                y2: yScale(0),
+            })
+            .style("stroke", "rgb(230, 230, 230)")
+            .style("shape-rendering", "crispEdges")
+            .style("stroke-width", 1);      
 
         svg2.append("g")
             .attr("class", "axis x")
@@ -347,9 +387,49 @@ const annotations = [{
                 "font-style": "bold"
             }); 
 
+d3.csv('https://rjenya.github.io/GLB.Ts+dSST.csv',
+function(data) {
 
-	}
+        mdataset = []
+        
+        for (i = 0; i < monthlycat.length; i++) {
+            mdataset[i] = {
+                catName: monthlycat[i],
+                value: []
+            };
+            console.log(data.length);
+            for (var j = 0; j < data.length; j++) {
+                    mdataset[i].value.push({
+                        year: data[j].Year,
+                        amount: data[j][monthlycat[i]]
+                    });
+            }
+            
+        }
+console.log(mdataset);
+var mgroups = svg2.selectAll(".line")
+            .data(mdataset)
+            .enter()
+            .append("g");
+
+        mgroups.append("title")
+            .text(function(d) {
+                return d.catName;
+            });
+
+        var mcatLine = mgroups
+            .append("path")
+            .attr("class", "line")
+            .attr("d", function(d) {
+			console.log(d.value);
+                return line2(d.value);
+            });
+
+
+	});
    
 
+
+}
     });
 </script>  

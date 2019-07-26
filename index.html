@@ -42,8 +42,9 @@ h1 {
 </style>
 <body>
 <h1>Global and Hemispheric Zonal Annual Means</h1>
+<p>This graph visualizes data from GISTEMP site, specifically the data from "Table Data: Global and Hemispheric Monthly Means and Zonal Annual Means".  Data for the Global, the Northern and Southern Hemispheres annual mean temperature changes from 1880 to present where the anomalies are relative to the 1951-80 reference period means. 
+The term temperature anomaly means a departure from a reference value or long-term average. A positive anomaly indicates that the observed temperature was warmer than the reference value, while a negative anomaly indicates that the observed temperature was cooler than the reference value.</p>
 <script src="https://d3js.org/d3.v3.min.js"></script>
-<!--<script src="d3.legend.js"></script>-->
 <script> 
 
     var w = 900,
@@ -131,7 +132,7 @@ h1 {
             })
         ]);
     
-        yScale.domain([1.00, -0.60]);
+        yScale.domain([1.50, -1.00]);
         
 
             
@@ -245,7 +246,59 @@ h1 {
                 return line2(d.value);
             })
 	.on("click", click);
+
+        svg.append("text")
+            .attr("text-anchor", "right")
+            .attr({
+                y: 260,
+                x: 650
+            })
+            .text("Different regions of the Earth")
+            .style({
+                "font-size": 14,
+                "font-style": "italic",
+                "fill": "#999"
+            });
+       svg.append("text")
+            .attr("text-anchor", "right")
+            .attr({
+                y: 275,
+                x: 650
+            })
+            .text("show rising temperature over the years.")
+            .style({
+                "font-size": 14,
+                "font-style": "italic",
+                "fill": "#999"
+            });
+
+        d3.select("svg").append("line")
+            .attr("class", "aniline")
+            .attr({
+                x1: 750,
+                y1: 250,
+                x2: w - 100,
+                y2: 150,
+            })
+            .style("stroke", "rgb(230, 230, 230)")
+            .style("shape-rendering", "crispEdges")
+            .style("stroke-width", 2);      
         
+        svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr({
+                y: 180,
+                x: 300
+            })
+            .text("Click on the lines to investigate monthly means")
+            .style({
+                "font-size": 16,
+                "font-style": "italic",
+                "fill": "#999",
+		"font-weight":"bold"
+            });
+
+
         //catLine.transition()
         //    .delay(500)
         //    .duration(2000)
@@ -291,19 +344,23 @@ h1 {
 
 
 function click(element){ 
-    		console.log(element.catName);
-		monthly.selectAll("*").remove();
-	monthly.append("h1").text(function(d) {
-                if (element.catName == "NHem") {
-                    return "North Monthly Means";
+ 		monthly.selectAll("*").remove();
+
+		if (element.catName == "NHem") {
+                    var url = "https://rjenya.github.io/NH.Ts+dSST.csv";
+		     var name = "Northern Hemisphere"
                 } else if (element.catName == "SHem") {
-                    return "South Monthly Means";
-                } else {
-                    return "Global Monthly Means";
-                }                
-            });
+                    var url = "https://rjenya.github.io/SH.Ts+dSST.csv";
+ 		     var name = "Southern Hemisphere"
+               } else {
+                    var url = "https://rjenya.github.io/GLB.Ts+dSST.csv";
+ 		     var name = "Global"
+               }    
+		monthly.append("h1").text(name + " Monthly Means");
 		
-var monthlycat = [ "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+	var monthlycat = [ "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+	var monthNames = [ "January", "February", "March", "April", "May", "June",
+		"July", "August", "September", "October", "November", "December" ];
      	var svg2 = monthly
         .append("svg")
 	.attr("id","monthly")
@@ -381,24 +438,24 @@ var monthlycat = [ "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","
                 y: 10,
                 x: -32,
             })
-            .text(element.catName + "Temperature Anomaly (\xB0 C)")
+            .text(element.catName + " Temperature Anomaly (\xB0 C)")
             .style({
                 "font-size": 12,
                 "font-style": "bold"
             }); 
 
-d3.csv('https://rjenya.github.io/GLB.Ts+dSST.csv',
+            
+d3.csv(url,
 function(data) {
 
         mdataset = []
         
         for (i = 0; i < monthlycat.length; i++) {
             mdataset[i] = {
-                catName: monthlycat[i],
+                catName: monthNames[i],
                 value: []
             };
-            for (var j = 0; j < data.length; j++) {
-				console.log(data[j]);
+            for (var j = 0; j < data.length-1; j++) {
                     mdataset[i].value.push({
                         year: data[j].Year,
                         amount: data[j][monthlycat[i]]
@@ -406,11 +463,20 @@ function(data) {
             }
             
         }
-console.log(mdataset);
 var mgroups = svg2.selectAll(".line")
             .data(mdataset)
             .enter()
-            .append("g");
+            .append("g")
+            .attr("class", function(d) {
+                if (element.catName == "NHem") {
+                    return "highlight steelblue";
+                } else if (element.catName == "SHem") {
+                    return "highlight red";
+                } else {
+                    return "";
+                }
+            });
+
 
         mgroups.append("title")
             .text(function(d) {
@@ -421,14 +487,48 @@ var mgroups = svg2.selectAll(".line")
             .append("path")
             .attr("class", "line")
             .attr("d", function(d) {
-			console.log(d.value);
                 return line2(d.value);
             });
 
 
 	});
-   
+           svg2.append("text")
+            .attr("text-anchor", "middle")
+            .attr({
+                y: 150,
+                x: 300
+            })
+            .text("Examine " + name + " anomalies")
+            .style({
+                "font-size": 14,
+                "font-style": "italic",
+                "fill": "#999"
+            });
+        svg2.append("text")
+            .attr("text-anchor", "middle")
+            .attr({
+                y: 165,
+                x: 300
+            })
+            .text("on a month-by-month basis.")
+            .style({
+                "font-size": 14,
+                "font-style": "italic",
+                "fill": "#999"
+            });
 
+       svg2.append("text")
+            .attr("text-anchor", "middle")
+            .attr({
+                y: 180,
+                x: 300
+            })
+            .text("Earth temperature rises over the years.")
+            .style({
+                "font-size": 14,
+                "font-style": "italic",
+                "fill": "#999"
+            });
 
 }
     });
